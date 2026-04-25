@@ -95,22 +95,13 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
 
   return (
     <Card className={cn(
-      "group transition-all duration-500 hover:shadow-xl border-border/40 overflow-hidden relative",
+      "group transition-all duration-500 hover:shadow-xl border-border/40 overflow-hidden relative gap-0",
       isNearArchive && !showRestore && "border-red-500/20 hover:shadow-red-500/5",
       !isNearArchive && "hover:shadow-violet-500/5"
     )}>
       {/* Type gradient background */}
       <div className={cn("absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500", typeGradient[question.type])} />
-      
-      {/* Near-archive pulse indicator */}
-      {isNearArchive && !showRestore && (
-        <div className="absolute top-3 right-3 z-10">
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-500/10 border border-red-500/20 animate-pulse">
-            <Zap className="h-3 w-3 text-red-500" />
-            <span className="text-[9px] font-bold text-red-500">Near Archive</span>
-          </div>
-        </div>
-      )}
+
 
       <CardContent className="p-0 relative">
         {/* Progress bar at top */}
@@ -120,6 +111,15 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
               <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 Ask Progress
+                {/* Near-archive pulse indicator */}
+                {isNearArchive && !showRestore && (
+                  <div className="ml-2">
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 animate-pulse">
+                      <Zap className="h-2.5 w-2.5 text-red-500" />
+                      <span className="text-[8.5px] font-semibold text-red-500">Near Archive</span>
+                    </div>
+                  </div>
+                )}
               </span>
               <span className={cn(
                 "text-[10px] font-bold tabular-nums",
