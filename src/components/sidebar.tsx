@@ -47,16 +47,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-5">
-          <Link href="/" className="flex items-center gap-2.5 group" onClick={onClose}>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-lg shadow-violet-500/20 transition-transform duration-300 group-hover:scale-110">
+          <Link href="/" className="flex items-center gap-3 group" onClick={onClose}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(139,92,246,0.5)]">
               <BookOpen className="h-4.5 w-4.5 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-tight flex items-center gap-1">
+              <h1 className="text-[15px] font-black tracking-tight flex items-center gap-1 bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-transparent group-hover:from-violet-500 group-hover:to-indigo-500 transition-all duration-300">
                 InterviewIQ
-                <Sparkles className="h-3 w-3 text-violet-500" />
+                <Sparkles className="h-3.5 w-3.5 text-violet-500 animate-pulse-glow" />
               </h1>
-              <p className="text-[9px] font-medium text-muted-foreground -mt-0.5">Question Manager</p>
+              <p className="text-[9px] font-semibold text-muted-foreground/80 -mt-0.5 tracking-wider uppercase">Question Manager</p>
             </div>
           </Link>
           <Button

@@ -95,13 +95,12 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
 
   return (
     <Card className={cn(
-      "group transition-all duration-500 hover:shadow-xl border-border/40 overflow-hidden relative gap-0",
-      isNearArchive && !showRestore && "border-red-500/20 hover:shadow-red-500/5",
-      !isNearArchive && "hover:shadow-violet-500/5"
+      "group transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl border-border/40 overflow-hidden relative gap-0 bg-card/80 backdrop-blur-md",
+      isNearArchive && !showRestore && "border-red-500/30 hover:shadow-red-500/10 shadow-[0_4px_20px_-10px_rgba(239,68,68,0.1)]",
+      !isNearArchive && "hover:shadow-violet-500/10 shadow-[0_4px_20px_-10px_rgba(139,92,246,0.05)]"
     )}>
       {/* Type gradient background */}
-      <div className={cn("absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500", typeGradient[question.type])} />
-
+      <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500", typeGradient[question.type])} />
 
       <CardContent className="p-0 relative">
         {/* Progress bar at top */}
@@ -116,7 +115,7 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
                   <div className="ml-2">
                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 animate-pulse">
                       <Zap className="h-2.5 w-2.5 text-red-500" />
-                      <span className="text-[8.5px] font-semibold text-red-500">Near Archive</span>
+                      <span className="text-[8.5px] font-semibold text-red-500 uppercase tracking-wider">Near Archive</span>
                     </div>
                   </div>
                 )}
@@ -131,41 +130,43 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
             <Progress
               value={progress}
               className={cn(
-                "h-1.5 rounded-full",
+                "h-1.5 rounded-full bg-muted/40",
                 progress >= 80
-                  ? "[&>div]:bg-gradient-to-r [&>div]:from-red-500 [&>div]:to-rose-400"
+                  ? "[&>div]:bg-gradient-to-r [&>div]:from-red-600 [&>div]:to-rose-400 [&>div]:shadow-[0_0_10px_rgba(225,29,72,0.5)]"
                   : progress >= 50
-                    ? "[&>div]:bg-gradient-to-r [&>div]:from-amber-500 [&>div]:to-yellow-400"
-                    : "[&>div]:bg-gradient-to-r [&>div]:from-violet-500 [&>div]:to-indigo-400"
+                    ? "[&>div]:bg-gradient-to-r [&>div]:from-amber-500 [&>div]:to-yellow-400 [&>div]:shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                    : "[&>div]:bg-gradient-to-r [&>div]:from-violet-600 [&>div]:to-indigo-400 [&>div]:shadow-[0_0_10px_rgba(139,92,246,0.5)]"
               )}
             />
           </div>
         )}
 
         {/* Main content */}
-        <div className="p-5 pt-3 space-y-3">
+        <div className="p-5 pt-4 space-y-3.5">
           {/* Badges row */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className={cn("text-[10px] gap-1 px-2 py-0.5 font-semibold", typeColors[question.type])}>
+            <Badge variant="outline" className={cn("text-[10px] gap-1 px-2 py-0.5 font-bold tracking-wide", typeColors[question.type])}>
               <TypeIcon className="h-3 w-3" />
               {question.type}
             </Badge>
-            <Badge variant="outline" className={cn("text-[10px] px-2 py-0.5 font-semibold", difficultyConfig[question.difficulty].color)}>
+            <Badge variant="outline" className={cn("text-[10px] px-2 py-0.5 font-bold tracking-wide", difficultyConfig[question.difficulty].color)}>
               {question.difficulty}
             </Badge>
-            <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-background/50">
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-background/80 shadow-sm border-border/50">
               {question.language}
             </Badge>
-            <Badge variant="outline" className="text-[10px] px-2 py-0.5 text-muted-foreground bg-background/50">
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 text-muted-foreground bg-background/80 shadow-sm border-border/50">
               {question.framework}
             </Badge>
-            <Badge variant="outline" className="text-[10px] px-2 py-0.5 text-muted-foreground ml-auto bg-background/50">
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 text-muted-foreground ml-auto bg-background/80 shadow-sm border-border/50">
               {question.experience}
             </Badge>
           </div>
 
           {/* Question text */}
-          <p className="text-sm font-medium leading-relaxed">{question.content}</p>
+          <p className="text-[15px] font-semibold leading-relaxed text-foreground/90 group-hover:text-foreground transition-colors duration-300 tracking-tight">
+            {question.content}
+          </p>
 
           {/* Code snippet preview */}
           {question.type === "Code" && question.codeSnippet && (
@@ -177,36 +178,38 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
 
           {/* Expanded content */}
           {expanded && (
-            <div className="space-y-3 pt-3 border-t border-border/30 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="space-y-4 pt-4 mt-2 border-t border-border/30 animate-in fade-in slide-in-from-top-2 duration-300">
               {/* MCQ Options */}
               {question.type === "MCQ" && question.options && (
-                <div className="space-y-2">
-                  <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <CircleDot className="h-3 w-3" />
-                    Options:
+                <div className="space-y-2.5">
+                  <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
+                    <CircleDot className="h-3.5 w-3.5 text-violet-500" />
+                    Options
                   </span>
-                  <div className="grid gap-1.5">
+                  <div className="grid gap-2">
                     {question.options.map((opt, idx) => (
                       <div
                         key={idx}
                         className={cn(
-                          "flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm border transition-all duration-200",
+                          "flex items-center gap-3 rounded-xl px-4 py-3 text-sm border transition-all duration-300 shadow-sm",
                           idx === question.correctOption
-                            ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400 shadow-sm shadow-emerald-500/5"
-                            : "border-border/30 bg-muted/20 hover:bg-muted/40"
+                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)] scale-[1.01]"
+                            : "border-border/40 bg-muted/30 hover:bg-muted/50 hover:border-border/60"
                         )}
                       >
                         <span className={cn(
-                          "flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold border",
+                          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-black border shadow-sm",
                           idx === question.correctOption
-                            ? "border-emerald-500 bg-emerald-500 text-white"
-                            : "border-border text-muted-foreground"
+                            ? "border-emerald-500 bg-emerald-500 text-white shadow-emerald-500/30"
+                            : "border-border/50 text-muted-foreground bg-background"
                         )}>
                           {String.fromCharCode(65 + idx)}
                         </span>
-                        <span className="flex-1">{opt}</span>
+                        <span className="flex-1 font-medium">{opt}</span>
                         {idx === question.correctOption && (
-                          <Check className="h-4 w-4 text-emerald-500" />
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20">
+                            <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                          </div>
                         )}
                       </div>
                     ))}
@@ -215,22 +218,25 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
               )}
 
               {/* Solution / Explanation */}
-              <div className="space-y-1.5">
-                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  {question.type === "MCQ" ? "Explanation:" : "Reference Answer:"}
+              <div className="space-y-2.5">
+                <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
+                  <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+                  {question.type === "MCQ" ? "Explanation" : "Reference Answer"}
                 </span>
-                <p className="text-sm text-muted-foreground leading-relaxed bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl p-4 border border-border/30">
-                  {question.solution}
-                </p>
+                <div className="relative overflow-hidden rounded-xl border border-border/40 bg-gradient-to-br from-muted/40 to-muted/10 p-5 shadow-inner">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-violet-500 to-indigo-500" />
+                  <p className="text-sm text-foreground/80 leading-relaxed font-medium">
+                    {question.solution}
+                  </p>
+                </div>
               </div>
 
               {/* Tags */}
               {question.tags && question.tags.length > 0 && (
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] font-semibold text-muted-foreground mr-0.5">Tags:</span>
+                <div className="flex items-center gap-2 flex-wrap pt-2">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mr-1">Tags</span>
                   {question.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/10">
+                    <Badge key={tag} variant="secondary" className="text-[10px] px-2 py-0.5 bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20 hover:bg-violet-500/20 transition-colors shadow-sm cursor-default">
                       #{tag}
                     </Badge>
                   ))}
@@ -240,11 +246,11 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
           )}
 
           {/* Actions row */}
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-2">
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 text-xs gap-1.5 cursor-pointer hover:bg-accent/50 transition-all duration-200"
+              className="h-8 text-xs gap-1.5 cursor-pointer hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-300 font-semibold"
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? (
@@ -253,7 +259,7 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
                 </>
               ) : (
                 <>
-                  <ChevronDown className="h-3.5 w-3.5" /> Expand
+                  <ChevronDown className="h-3.5 w-3.5" /> Expand Details
                 </>
               )}
             </Button>

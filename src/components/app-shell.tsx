@@ -14,18 +14,19 @@ export function AppShell({ children, title }: AppShellProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background relative selection:bg-violet-500/30">
-      {/* Animated Background Mesh */}
+      {/* Animated Background Mesh & Grid */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-violet-600/10 blur-[100px] animate-pulse-glow" />
-        <div className="absolute top-[20%] right-[-10%] w-[30%] h-[50%] rounded-full bg-indigo-600/10 blur-[120px] animate-float" style={{ animationDelay: '1s', animationDuration: '7s' }} />
-        <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[40%] rounded-full bg-cyan-600/10 blur-[100px] animate-pulse-glow" style={{ animationDelay: '2s', animationDuration: '5s' }} />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-violet-600/15 blur-[120px] animate-pulse-glow" />
+        <div className="absolute top-[20%] right-[-10%] w-[30%] h-[50%] rounded-full bg-indigo-600/15 blur-[120px] animate-float" style={{ animationDelay: '1s', animationDuration: '7s' }} />
+        <div className="absolute bottom-[-20%] left-[20%] w-[50%] h-[40%] rounded-full bg-cyan-600/15 blur-[100px] animate-pulse-glow" style={{ animationDelay: '2s', animationDuration: '5s' }} />
       </div>
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden relative z-10">
         <Header onMenuClick={() => setSidebarOpen(true)} title={title} />
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-20">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 h-full">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-20 scroll-smooth">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 h-full max-w-7xl mx-auto">
             {children}
           </div>
         </main>
