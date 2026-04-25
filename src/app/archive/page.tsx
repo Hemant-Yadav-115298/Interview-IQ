@@ -38,8 +38,14 @@ export default function ArchivePage() {
             <p className="text-sm font-semibold text-muted-foreground">
               {questions.length} archived question{questions.length !== 1 ? "s" : ""}
             </p>
-            {questions.map((q) => (
-              <QuestionCard key={q.id} question={q} showRestore />
+            {questions.map((q, idx) => (
+              <div 
+                key={q.id} 
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
+                style={{ animationDelay: `${idx * 100}ms` }}
+              >
+                <QuestionCard question={q} showRestore />
+              </div>
             ))}
           </div>
         )}

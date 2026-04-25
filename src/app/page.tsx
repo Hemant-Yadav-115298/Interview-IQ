@@ -39,8 +39,14 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {questions.map((q) => (
-                <QuestionCard key={q.id} question={q} />
+              {questions.map((q, idx) => (
+                <div 
+                  key={q.id} 
+                  className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  <QuestionCard question={q} />
+                </div>
               ))}
             </div>
           )}
