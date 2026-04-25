@@ -84,7 +84,7 @@ export function BulkUpload() {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        const rows: ParsedRow[] = results.data.map((row: Record<string, string>) => {
+        const rows: ParsedRow[] = results.data.map((row: any) => {
           const errors: string[] = [];
           const type = (row.type || "").trim() as QuestionType;
           const content = (row.content || "").trim();

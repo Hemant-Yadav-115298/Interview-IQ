@@ -64,8 +64,8 @@ export function QuestionCard({ question, showRestore = false }: QuestionCardProp
   const progress = (question.askCount / ARCHIVE_THRESHOLD) * 100;
   const isNearArchive = question.askCount >= 12;
 
-  const handleMarkAsked = () => {
-    const result = incrementAskCount(question.id);
+  const handleMarkAsked = async () => {
+    const result = await incrementAskCount(question.id);
     if (result === "archived") {
       toast.success("Question Archived", {
         description: `"${question.content.substring(0, 50)}..." has reached ${ARCHIVE_THRESHOLD} asks and was automatically archived.`,

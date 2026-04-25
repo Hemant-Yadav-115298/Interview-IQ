@@ -1,11 +1,11 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { useMemo } from "react";
 import { Question, Filters, ARCHIVE_THRESHOLD } from "./types";
-import { seedQuestions } from "./seed-data";
 import { v4 as uuidv4 } from "uuid";
+import { supabase } from "./supabase";
+import { toast } from "sonner";
 
 interface StoreState {
   questions: Question[];
@@ -14,15 +14,16 @@ interface StoreState {
   adminAuthenticated: boolean;
   adminPin: string;
   initialized: boolean;
+  isLoading: boolean;
 
   // Actions
-  initializeStore: () => void;
-  addQuestion: (q: Omit<Question, "id" | "askCount" | "status" | "createdAt">) => void;
-  updateQuestion: (id: string, updates: Partial<Question>) => void;
-  deleteQuestion: (id: string) => void;
-  incrementAskCount: (id: string) => string | null;
-  restoreQuestion: (id: string) => void;
-  bulkImport: (questions: Omit<Question, "id" | "askCount" | "status" | "createdAt">[]) => number;
+  initializeStore: () => Promise<void>;
+  addQuestion: (q: Omit<Question, "id" | "askCount" | "status" | "createdAt">) => Promise<void>;
+  updateQuestion: (id: string, updates: Partial<Question>) => Promise<void>;
+  deleteQuestion: (id: string) => Promise<void>;
+  incrementAskCount: (id: string) => Promise<string | null>;
+  restoreQuestion: (id: string) => Promise<void>;
+  bulkImport: (questions: Omit<Question, "id" | "askCount" | "status" | "createdAt">[]) => Promise<number>;
   toggleFilter: (key: keyof Filters, value: string) => void;
   removeFilter: (key: keyof Filters, value: string) => void;
   clearFilters: () => void;
@@ -39,134 +40,216 @@ const defaultFilters: Filters = {
   type: [],
 };
 
-export const useStore = create<StoreState>()(
-  persist(
-    (set, get) => ({
-      questions: [],
-      filters: defaultFilters,
-      searchQuery: "",
-      adminAuthenticated: false,
-      adminPin: "1234",
-      initialized: false,
+export const useStore = create<StoreState>()((set, get) => ({
+  questions: [],
+  filters: defaultFilters,
+  searchQuery: "",
+  adminAuthenticated: false,
+  // Hardcoded for demo, normally this would be in env or DB
+  adminPin: "1234",
+  initialized: false,
+  isLoading: true,
 
-      initializeStore: () => {
-        const state = get();
-        if (!state.initialized || state.questions.length === 0) {
-          set({ questions: seedQuestions, initialized: true });
-        }
-      },
+  initializeStore: async () => {
+    const state = get();
+    if (state.initialized) return;
 
-      addQuestion: (q) => {
-        const newQuestion: Question = {
-          ...q,
-          id: uuidv4(),
-          askCount: 0,
-          status: "Active",
-          createdAt: new Date().toISOString(),
-        };
-        set((state) => ({ questions: [...state.questions, newQuestion] }));
-      },
+    set({ isLoading: true });
 
-      updateQuestion: (id, updates) => {
-        set((state) => ({
-          questions: state.questions.map((q) => (q.id === id ? { ...q, ...updates } : q)),
-        }));
-      },
+    const { data, error } = await supabase
+      .from("questions")
+      .select("*")
+      .order("createdAt", { ascending: false });
 
-      deleteQuestion: (id) => {
-        set((state) => ({
-          questions: state.questions.filter((q) => q.id !== id),
-        }));
-      },
-
-      incrementAskCount: (id) => {
-        let archived: string | null = null;
-        set((state) => ({
-          questions: state.questions.map((q) => {
-            if (q.id === id) {
-              const newCount = q.askCount + 1;
-              const newStatus = newCount >= ARCHIVE_THRESHOLD ? "Archived" : q.status;
-              if (newStatus === "Archived" && q.status !== "Archived") {
-                archived = "archived";
-              }
-              return { ...q, askCount: newCount, status: newStatus };
-            }
-            return q;
-          }),
-        }));
-        return archived;
-      },
-
-      restoreQuestion: (id) => {
-        set((state) => ({
-          questions: state.questions.map((q) =>
-            q.id === id ? { ...q, status: "Active" as const, askCount: 0 } : q
-          ),
-        }));
-      },
-
-      bulkImport: (questions) => {
-        const newQuestions: Question[] = questions.map((q) => ({
-          ...q,
-          id: uuidv4(),
-          askCount: 0,
-          status: "Active" as const,
-          createdAt: new Date().toISOString(),
-        }));
-        set((state) => ({ questions: [...state.questions, ...newQuestions] }));
-        return newQuestions.length;
-      },
-
-      toggleFilter: (key, value) => {
-        set((state) => {
-          const current = state.filters[key];
-          const next = current.includes(value)
-            ? current.filter((v) => v !== value)
-            : [...current, value];
-          return { filters: { ...state.filters, [key]: next } };
-        });
-      },
-
-      removeFilter: (key, value) => {
-        set((state) => ({
-          filters: {
-            ...state.filters,
-            [key]: state.filters[key].filter((v) => v !== value),
-          },
-        }));
-      },
-
-      clearFilters: () => {
-        set({ filters: defaultFilters });
-      },
-
-      setSearchQuery: (query) => {
-        set({ searchQuery: query });
-      },
-
-      authenticateAdmin: (pin) => {
-        const state = get();
-        if (pin === state.adminPin) {
-          set({ adminAuthenticated: true });
-          return true;
-        }
-        return false;
-      },
-
-      logoutAdmin: () => {
-        set({ adminAuthenticated: false });
-      },
-    }),
-    {
-      name: "interview-guide-storage",
-      partialize: (state) => ({
-        questions: state.questions,
-        initialized: state.initialized,
-        adminPin: state.adminPin,
-      }),
+    if (error) {
+      console.error("Error fetching questions from Supabase:", error);
+      toast.error("Failed to fetch questions from database.");
+      set({ isLoading: false });
+      return;
     }
-  )
-);
+
+    set({ questions: data as Question[], initialized: true, isLoading: false });
+  },
+
+  addQuestion: async (q) => {
+    const newQuestion: Question = {
+      ...q,
+      id: uuidv4(),
+      askCount: 0,
+      status: "Active",
+      createdAt: new Date().toISOString(),
+    };
+    
+    // Optimistic UI update
+    set((state) => ({ questions: [newQuestion, ...state.questions] }));
+
+    // Supabase DB insert
+    const { error } = await supabase.from("questions").insert(newQuestion);
+    if (error) {
+      console.error("Error inserting question:", error);
+      toast.error("Failed to save question to database.");
+      // Rollback optimistic update
+      set((state) => ({ questions: state.questions.filter((item) => item.id !== newQuestion.id) }));
+    }
+  },
+
+  updateQuestion: async (id, updates) => {
+    // Optimistic UI update
+    const previousQuestions = get().questions;
+    set((state) => ({
+      questions: state.questions.map((q) => (q.id === id ? { ...q, ...updates } : q)),
+    }));
+
+    // Supabase DB update
+    const { error } = await supabase
+      .from("questions")
+      .update(updates)
+      .eq("id", id);
+      
+    if (error) {
+      console.error("Error updating question:", error);
+      toast.error("Failed to update question in database.");
+      set({ questions: previousQuestions }); // Rollback
+    }
+  },
+
+  deleteQuestion: async (id) => {
+    const previousQuestions = get().questions;
+    
+    // Optimistic UI update
+    set((state) => ({
+      questions: state.questions.filter((q) => q.id !== id),
+    }));
+
+    // Supabase DB delete
+    const { error } = await supabase.from("questions").delete().eq("id", id);
+    if (error) {
+      console.error("Error deleting question:", error);
+      toast.error("Failed to delete question from database.");
+      set({ questions: previousQuestions }); // Rollback
+    }
+  },
+
+  incrementAskCount: async (id) => {
+    let archived: string | null = null;
+    let updatePayload: Partial<Question> = {};
+
+    // Optimistic UI update
+    set((state) => ({
+      questions: state.questions.map((q) => {
+        if (q.id === id) {
+          const newCount = q.askCount + 1;
+          const newStatus = newCount >= ARCHIVE_THRESHOLD ? "Archived" : q.status;
+          
+          if (newStatus === "Archived" && q.status !== "Archived") {
+            archived = "archived";
+          }
+          
+          updatePayload = { askCount: newCount, status: newStatus };
+          return { ...q, ...updatePayload };
+        }
+        return q;
+      }),
+    }));
+
+    // Supabase DB update
+    if (Object.keys(updatePayload).length > 0) {
+      const { error } = await supabase.from("questions").update(updatePayload).eq("id", id);
+      if (error) {
+        console.error("Error updating ask count:", error);
+        toast.error("Failed to update ask count in database.");
+      }
+    }
+
+    return archived;
+  },
+
+  restoreQuestion: async (id) => {
+    const updatePayload: Partial<Question> = { status: "Active", askCount: 0 };
+    
+    // Optimistic UI update
+    set((state) => ({
+      questions: state.questions.map((q) =>
+        q.id === id ? { ...q, ...updatePayload } : q
+      ),
+    }));
+
+    // Supabase DB update
+    const { error } = await supabase.from("questions").update(updatePayload).eq("id", id);
+    if (error) {
+      console.error("Error restoring question:", error);
+      toast.error("Failed to restore question in database.");
+    }
+  },
+
+  bulkImport: async (questions) => {
+    const newQuestions: Question[] = questions.map((q) => ({
+      ...q,
+      id: uuidv4(),
+      askCount: 0,
+      status: "Active" as const,
+      createdAt: new Date().toISOString(),
+    }));
+    
+    // Optimistic UI update
+    set((state) => ({ questions: [...newQuestions, ...state.questions] }));
+
+    // Supabase DB insert
+    const { error } = await supabase.from("questions").insert(newQuestions);
+    if (error) {
+      console.error("Error bulk importing questions:", error);
+      toast.error("Failed to bulk import questions into database.");
+      // Note: Full rollback for bulk is tricky if partial inserts occur, 
+      // but assuming atomic insert fails completely:
+      set((state) => ({ 
+        questions: state.questions.filter((q) => !newQuestions.find(nq => nq.id === q.id)) 
+      }));
+      return 0;
+    }
+
+    return newQuestions.length;
+  },
+
+  toggleFilter: (key, value) => {
+    set((state) => {
+      const current = state.filters[key];
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return { filters: { ...state.filters, [key]: next } };
+    });
+  },
+
+  removeFilter: (key, value) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        [key]: state.filters[key].filter((v) => v !== value),
+      },
+    }));
+  },
+
+  clearFilters: () => {
+    set({ filters: defaultFilters });
+  },
+
+  setSearchQuery: (query) => {
+    set({ searchQuery: query });
+  },
+
+  authenticateAdmin: (pin) => {
+    const state = get();
+    if (pin === state.adminPin) {
+      set({ adminAuthenticated: true });
+      return true;
+    }
+    return false;
+  },
+
+  logoutAdmin: () => {
+    set({ adminAuthenticated: false });
+  },
+}));
 
 // Helper function for filtering questions
 function filterQuestions(
